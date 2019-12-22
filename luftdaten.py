@@ -33,7 +33,7 @@ Press Ctrl+C to exit!
 
 bus = SMBus(1)
 
-# Create BME280 instance
+# Create BME280 (temp, humidity and pressure sensor) instance
 bme280 = BME280(i2c_dev=bus)
 
 # Create LCD instance
@@ -49,7 +49,7 @@ disp = ST7735.ST7735(
 # Initialize display
 disp.begin()
 
-# Create PMS5003 instance
+# Create PMS5003 (air quality sensor) instance
 pms5003 = PMS5003()
 
 
@@ -113,7 +113,7 @@ def check_wifi():
         return False
 
 
-# Display Raspberry Pi serial and Wi-Fi status on LCD
+# Display Last information sent date, last request status and Wi-Fi status on LCD
 def display_status(status=''):
     wifi_status = "connected" if check_wifi() else "disconnected"
     text_colour = (255, 255, 255)
