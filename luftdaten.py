@@ -113,7 +113,7 @@ def check_wifi():
         return False
 
 
-# Display Last information sent date, last request status and Wi-Fi status on LCD
+# Display Last request date, last request status and Wi-Fi status on LCD
 def display_status(status=''):
     wifi_status = "connected" if check_wifi() else "disconnected"
     text_colour = (255, 255, 255)
