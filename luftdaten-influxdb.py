@@ -92,25 +92,25 @@ def read_values():
     cpu_temp = get_cpu_temperature()
     raw_temp = bme280.get_temperature()
     comp_temp = raw_temp - ((cpu_temp - raw_temp) / comp_factor)
-    values['temperature'] = "{:.2f}".format(comp_temp)
-    values['pressure'] = "{:.2f}".format(bme280.get_pressure())
-    values['humidity'] = "{:.2f}".format(bme280.get_humidity())
+    values['temperature'] = round(comp_temp, 2)
+    values['pressure'] = round(bme280.get_pressure(), 2)
+    values['humidity'] = round(bme280.get_humidity(), 2)
     data = gas.read_all()
-    values['oxidising'] = "{:.4f}".format(data.oxidising / 1000)
-    values['reducing'] = "{:.4f}".format(data.reducing / 1000)
-    values['nh3'] = "{:.4f}".format(data.nh3 / 1000)
-    values['lux'] = str(ltr559.get_lux())
+    values['oxidising'] = round(data.oxidising / 1000, 4)
+    values['reducing'] = round(data.reducing / 1000, 4)
+    values['nh3'] = round(data.nh3 / 1000, 4)
+    values['lux'] = ltr559.get_lux()
     try:
         pm_values = pms5003.read()
-        values['P2.5'] = str(pm_values.pm_ug_per_m3(2.5))
-        values['P10'] = str(pm_values.pm_ug_per_m3(10))
-        values['P1.0'] = str(pm_values.pm_ug_per_m3(1.0))
+        values['P2.5'] = pm_values.pm_ug_per_m3(2.5)
+        values['P10'] = pm_values.pm_ug_per_m3(10)
+        values['P1.0'] = pm_values.pm_ug_per_m3(1.0)
     except ReadTimeoutError:
         pms5003.reset()
         pm_values = pms5003.read()
-        values['P2.5'] = str(pm_values.pm_ug_per_m3(2.5))
-        values['P10'] = str(pm_values.pm_ug_per_m3(10))
-        values['P1.0'] = str(pm_values.pm_ug_per_m3(1.0))
+        values['P2.5'] = pm_values.pm_ug_per_m3(2.5)
+        values['P10'] = pm_values.pm_ug_per_m3(10)
+        values['P1.0'] = pm_values.pm_ug_per_m3(1.0)
 
     values['ts'] = time.time_ns()
     return values
@@ -159,14 +159,14 @@ def display_status(status=''):
 
 def send_to_luftdaten(values, id):
     logger.debug('Sending info to luftdaten')
-    pm_values = {'P1': values['P10'], 'P2': values['P2.5']}
-    temp_values = {'temperature': values['temperature'], 'pressure': values['pressure'], 'humidity': values['humidity']}
 
     resp_1 = requests.post("https://api.luftdaten.info/v1/push-sensor-data/",
                            json={
                                "software_version": "enviro-plus 0.0.1",
-                               "sensordatavalues": [{"value_type": key, "value": val} for
-                                                    key, val in pm_values.items()]
+                               "sensordatavalues": [
+                                   {'value_type': 'P1', 'value': str(values['P10'])},
+                                   {'value_type': 'P2', 'value': str(values['P2.5'])}
+                               ]
                            },
                            headers={
                                "X-PIN": "1",
@@ -178,9 +178,12 @@ def send_to_luftdaten(values, id):
 
     resp_2 = requests.post("https://api.luftdaten.info/v1/push-sensor-data/",
                            json={
-                               "software_version": "enviro-plus 0.0.1",
-                               "sensordatavalues": [{"value_type": key, "value": val} for
-                                                    key, val in temp_values.items()]
+                               'software_version': '"enviro-plus 0.0.1',
+                               'sensordatavalues': [
+                                   {'value_type': 'temperature', 'value': str(values['temperature'])},
+                                   {'value_type': 'humidity', 'value': str(values['humidity'])},
+                                   {'value_type': 'pressure', 'value': str(values['pressure'])}
+                               ]
                            },
                            headers={
                                "X-PIN": "11",
