@@ -211,7 +211,8 @@ def send_to_influxDB(values):
     if len(values_buffer) > 100:
         logger.info("Sending data to influxDB")
         client = InfluxDBClient(url=config['influxdb']['url'], token=config['influxdb']['token'], enable_gzip=True)
-        client.write('bucketID', config['influxdb']['bucket'], map_to_influxDB(values_buffer))
+        write_client = client.write_api(write_options=SYNCHRONOUS)
+        write_client.write('bucketID', config['influxdb']['bucket'], map_to_influxDB(values_buffer))
         values_buffer = []
 
 
