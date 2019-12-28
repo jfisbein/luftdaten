@@ -102,13 +102,13 @@ def read_values():
         pm_values = pms5003.read()
         values["P2"] = str(pm_values.pm_ug_per_m3(2.5))
         values["P1"] = str(pm_values.pm_ug_per_m3(10))
-        values["p1.0"] = str(pm_values.pm_ug_per_m3(1.0))
+        values["P1.0"] = str(pm_values.pm_ug_per_m3(1.0))
     except ReadTimeoutError:
         pms5003.reset()
         pm_values = pms5003.read()
         values["P2"] = str(pm_values.pm_ug_per_m3(2.5))
         values["P1"] = str(pm_values.pm_ug_per_m3(10))
-        values["p1.0"] = str(pm_values.pm_ug_per_m3(1.0))
+        values["P1.0"] = str(pm_values.pm_ug_per_m3(1.0))
 
     values['ts'] = round(time.time() * 1000)
     return values
@@ -157,8 +157,10 @@ def display_status(status=''):
 
 def send_to_luftdaten(values, id):
     logger.debug('Sending info to luftdaten')
-    pm_values = dict(i for i in values.items() if i[0].startswith("P"))
     temp_values = dict(i for i in values.items() if not i[0].startswith("P"))
+
+    pm_values = {'P1': values['P1'], 'P2': values['P2']}
+    temp_values = {'temperature': values['temperature'], 'pressure': values['pressure'], 'humidity': values['humidity']}
 
     resp_1 = requests.post("https://api.luftdaten.info/v1/push-sensor-data/",
                            json={
@@ -200,7 +202,7 @@ def map_to_influxdb(values):
         influxDbMessages.append("weather,location=acacias temperature={},humidity={},pressure={} {}"
                                 .format(value['temperature'], value['humidity'], value['pressure'], value['ts']))
         influxDbMessages.append("particles,location=acacias P25={},P10={},P1={} {}"
-                                .format(value['P2'], value['P1'], value['p1.0'], value['ts']))
+                                .format(value['P2'], value['P1'], value['P1.0'], value['ts']))
         influxDbMessages.append("gas,location=acacias oxidising={},reducing={},nh3={} {}"
                                 .format(value['oxidising'], value['reducing'], value['nh3'], value['ts']))
     return influxDbMessages
