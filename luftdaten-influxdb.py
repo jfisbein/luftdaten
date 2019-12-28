@@ -93,9 +93,9 @@ def read_values():
     values["pressure"] = "{:.2f}".format(bme280.get_pressure() * 100)
     values["humidity"] = "{:.2f}".format(bme280.get_humidity())
     data = gas.read_all()
-    values["oxidising"] = data.oxidising / 1000
-    values["reducing"] = data.reducing / 1000
-    values["nh3"] = data.nh3 / 1000
+    values["oxidising"] = round(data.oxidising / 1000, 4)
+    values["reducing"] = round(data.reducing / 1000, 4)
+    values["nh3"] = round(data.nh3 / 1000, 4)
     values["lux"] = ltr559.get_lux()
     try:
         pm_values = pms5003.read()
