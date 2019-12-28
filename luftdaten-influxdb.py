@@ -8,20 +8,27 @@ from subprocess import PIPE, Popen, check_output
 
 import ST7735
 import requests
+import yaml
 from PIL import Image, ImageDraw, ImageFont
 from bme280 import BME280
+from enviroplus import gas
+from influxdb_client import InfluxDBClient
 from pms5003 import PMS5003, ReadTimeoutError
 
-import influxdb_client
-from influxdb_client import InfluxDBClient
+try:
+    # Transitional fix for breaking change in LTR559
+    from ltr559 import LTR559
 
-import yaml
-config = yaml.safe_load(open("config.yml"))
+    ltr559 = LTR559()
+except ImportError:
+    import ltr559
 
 try:
     from smbus2 import SMBus
 except ImportError:
     from smbus import SMBus
+
+config = yaml.safe_load(open("config.yml"))
 
 print("""luftdaten.py - Reads temperature, pressure, humidity,
 PM2.5, and PM10 from Enviro plus and sends data to Luftdaten,
@@ -60,6 +67,7 @@ pms5003 = PMS5003()
 
 values_buffer = []
 
+
 # Create logger
 def get_logger(path):
     rotating_handler = TimedRotatingFileHandler(path, when='d', backupCount=7)
@@ -84,16 +92,23 @@ def read_values():
     values["temperature"] = "{:.2f}".format(comp_temp)
     values["pressure"] = "{:.2f}".format(bme280.get_pressure() * 100)
     values["humidity"] = "{:.2f}".format(bme280.get_humidity())
+    data = gas.read_all()
+    values["oxidising"] = data.oxidising / 1000
+    values["reducing"] = data.reducing / 1000
+    values["nh3"] = data.nh3 / 1000
+    values["lux"] = ltr559.get_lux()
     try:
         pm_values = pms5003.read()
         values["P2"] = str(pm_values.pm_ug_per_m3(2.5))
         values["P1"] = str(pm_values.pm_ug_per_m3(10))
+        values["p1.0"] = str(pm_values.pm_ug_per_m3(1.0))
     except ReadTimeoutError:
         pms5003.reset()
         pm_values = pms5003.read()
         values["P2"] = str(pm_values.pm_ug_per_m3(2.5))
         values["P1"] = str(pm_values.pm_ug_per_m3(10))
-    
+        values["p1.0"] = str(pm_values.pm_ug_per_m3(1.0))
+
     values['ts'] = time.time()
     return values
 
@@ -102,7 +117,6 @@ def read_values():
 def get_cpu_temperature():
     process = Popen(['vcgencmd', 'measure_temp'], stdout=PIPE, universal_newlines=True)
     output, _error = process.communicate()
-    output = output.decode()
     return float(output[output.index('=') + 1:output.rindex("'")])
 
 
@@ -180,21 +194,21 @@ def send_to_luftdaten(values, id):
 
 
 def map_to_influxDB(values):
-    influxDbMessages=[]
+    influxDbMessages = []
     for value in values:
         influxDbMessages.append("weather,location=acacias temperature={} {}".format(value['temperature'], round(value['ts'])))
         influxDbMessages.append("weather,location=acacias humidity={} {}".format(value['humidity'], round(value['ts'])))
         influxDbMessages.append("weather,location=acacias pressure={} {}".format(value['pressure'], round(value['ts'])))
         influxDbMessages.append("particles,location=acacias P25={} {}".format(value['P2'], round(value['ts'])))
         influxDbMessages.append("particles,location=acacias P10={} {}".format(value['P1'], round(value['ts'])))
-    
+
     return influxDbMessages
 
 
-def send_to_influxDB (values):
+def send_to_influxDB(values):
     global values_buffer
     values_buffer.append(values)
-    if len(values_buffer)>100:
+    if len(values_buffer) > 100:
         logger.info("Sending data to influxDB")
         client = InfluxDBClient(url=config['influxdb']['url'], token=config['influxdb']['token'], enable_gzip=True)
         client.write('bucketID', config['influxdb']['bucket'], map_to_influxDB(values_buffer))
