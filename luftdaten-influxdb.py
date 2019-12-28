@@ -67,6 +67,8 @@ disp.begin()
 pms5003 = PMS5003()
 
 values_buffer = []
+client = InfluxDBClient(url=config['influxdb']['url'], token=config['influxdb']['token'], org=config['influxdb']['org'], enable_gzip=True)
+write_client = client.write_api(write_options=SYNCHRONOUS)
 
 
 # Create logger
@@ -205,16 +207,18 @@ def map_to_influxdb(values):
                                 .format(value['P2'], value['P1'], value['P1.0'], value['ts']))
         influxDbMessages.append("gas,location=acacias oxidising={},reducing={},nh3={} {}"
                                 .format(value['oxidising'], value['reducing'], value['nh3'], value['ts']))
+
+        logger.debug(influxDbMessages)
+
     return influxDbMessages
 
 
 def send_to_influxdb(values):
     global values_buffer
+    global write_client
     values_buffer.append(values)
-    if len(values_buffer) > 100:
+    if len(values_buffer) > 10:
         logger.info("Sending data to influxDB")
-        client = InfluxDBClient(url=config['influxdb']['url'], token=config['influxdb']['token'], enable_gzip=True)
-        write_client = client.write_api(write_options=SYNCHRONOUS)
         write_client.write(config['influxdb']['bucket'], config['influxdb']['org'], map_to_influxdb(values_buffer))
         values_buffer = []
 
