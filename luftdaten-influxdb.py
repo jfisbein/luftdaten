@@ -13,6 +13,7 @@ from PIL import Image, ImageDraw, ImageFont
 from bme280 import BME280
 from enviroplus import gas
 from influxdb_client import InfluxDBClient
+from influxdb_client.client.write_api import SYNCHRONOUS
 from pms5003 import PMS5003, ReadTimeoutError
 
 try:
@@ -201,6 +202,7 @@ def map_to_influxDB(values):
         influxDbMessages.append("weather,location=acacias pressure={} {}".format(value['pressure'], round(value['ts'])))
         influxDbMessages.append("particles,location=acacias P25={} {}".format(value['P2'], round(value['ts'])))
         influxDbMessages.append("particles,location=acacias P10={} {}".format(value['P1'], round(value['ts'])))
+        influxDbMessages.append("particles,location=acacias P1={} {}".format(value['p1.0'], round(value['ts'])))
 
     return influxDbMessages
 
