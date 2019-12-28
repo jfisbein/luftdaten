@@ -200,16 +200,16 @@ def send_to_luftdaten(values, id):
 
 
 def map_to_influxdb(values):
-    influxDbMessages = []
+    influxdb_messages = []
     for value in values:
-        influxDbMessages.append("weather,location=acacias temperature={},humidity={},pressure={} {}"
-                                .format(value['temperature'], value['humidity'], value['pressure'], value['ts']))
-        influxDbMessages.append("particles,location=acacias P25={},P10={},P1={} {}"
-                                .format(value['P2.5'], value['P10'], value['P1.0'], value['ts']))
-        influxDbMessages.append("gas,location=acacias oxidising={},reducing={},nh3={} {}"
-                                .format(value['oxidising'], value['reducing'], value['nh3'], value['ts']))
+        influxdb_messages.append("weather,location=acacias temperature={},humidity={},pressure={} {}"
+                                 .format(value['temperature'], value['humidity'], value['pressure'], value['ts']))
+        influxdb_messages.append("particles,location=acacias P25={},P10={},P1={} {}"
+                                 .format(value['P2.5'], value['P10'], value['P1.0'], value['ts']))
+        influxdb_messages.append("gas,location=acacias oxidising={},reducing={},nh3={} {}"
+                                 .format(value['oxidising'], value['reducing'], value['nh3'], value['ts']))
 
-    return influxDbMessages
+    return influxdb_messages
 
 
 def send_to_influxdb(values):
