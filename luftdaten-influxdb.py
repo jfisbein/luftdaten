@@ -194,27 +194,27 @@ def send_to_luftdaten(values, id):
         return False
 
 
-def map_to_influxDB(values):
+def map_to_influxdb(values):
     influxDbMessages = []
     for value in values:
-        influxDbMessages.append("weather,location=acacias temperature={} {}".format(value['temperature'], round(value['ts'])))
-        influxDbMessages.append("weather,location=acacias humidity={} {}".format(value['humidity'], round(value['ts'])))
-        influxDbMessages.append("weather,location=acacias pressure={} {}".format(value['pressure'], round(value['ts'])))
-        influxDbMessages.append("particles,location=acacias P25={} {}".format(value['P2'], round(value['ts'])))
-        influxDbMessages.append("particles,location=acacias P10={} {}".format(value['P1'], round(value['ts'])))
-        influxDbMessages.append("particles,location=acacias P1={} {}".format(value['p1.0'], round(value['ts'])))
-
+        ts = round(value['ts'] * 1000)
+        influxDbMessages.append("weather,location=acacias temperature={},humidity={},pressure={} {}"
+                                .format(value['temperature'], value['humidity'], value['pressure'], ts))
+        influxDbMessages.append("particles,location=acacias P25={},P10={},P1={} {}"
+                                .format(value['P2'], value['P1'], value['p1.0'], ts))
+        influxDbMessages.append("gas,location=acacias oxidising={},reducing={},nh3={} {}"
+                                .format(value['oxidising'], value['reducing'], value['nh3'], ts))
     return influxDbMessages
 
 
-def send_to_influxDB(values):
+def send_to_influxdb(values):
     global values_buffer
     values_buffer.append(values)
     if len(values_buffer) > 100:
         logger.info("Sending data to influxDB")
         client = InfluxDBClient(url=config['influxdb']['url'], token=config['influxdb']['token'], enable_gzip=True)
         write_client = client.write_api(write_options=SYNCHRONOUS)
-        write_client.write('bucketID', config['influxdb']['bucket'], map_to_influxDB(values_buffer))
+        write_client.write(config['influxdb']['bucket'], map_to_influxdb(values_buffer))
         values_buffer = []
 
 
@@ -250,7 +250,7 @@ while True:
         time_since_update = time.time() - update_time
         values = read_values()
         logger.debug(values)
-        send_to_influxDB(values)
+        send_to_influxdb(values)
         if time_since_update > 145:
             resp = send_to_luftdaten(values, id)
             response = "ok" if resp else "failed"
