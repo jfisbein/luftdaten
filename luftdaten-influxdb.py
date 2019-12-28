@@ -110,7 +110,7 @@ def read_values():
         values["P1"] = str(pm_values.pm_ug_per_m3(10))
         values["p1.0"] = str(pm_values.pm_ug_per_m3(1.0))
 
-    values['ts'] = time.time()
+    values['ts'] = round(time.time() * 1000)
     return values
 
 
@@ -197,13 +197,12 @@ def send_to_luftdaten(values, id):
 def map_to_influxdb(values):
     influxDbMessages = []
     for value in values:
-        ts = round(value['ts'] * 1000)
         influxDbMessages.append("weather,location=acacias temperature={},humidity={},pressure={} {}"
-                                .format(value['temperature'], value['humidity'], value['pressure'], ts))
+                                .format(value['temperature'], value['humidity'], value['pressure'], value['ts']))
         influxDbMessages.append("particles,location=acacias P25={},P10={},P1={} {}"
-                                .format(value['P2'], value['P1'], value['p1.0'], ts))
+                                .format(value['P2'], value['P1'], value['p1.0'], value['ts']))
         influxDbMessages.append("gas,location=acacias oxidising={},reducing={},nh3={} {}"
-                                .format(value['oxidising'], value['reducing'], value['nh3'], ts))
+                                .format(value['oxidising'], value['reducing'], value['nh3'], value['ts']))
     return influxDbMessages
 
 
