@@ -213,7 +213,7 @@ def send_to_influxdb(values):
         logger.info("Sending data to influxDB")
         client = InfluxDBClient(url=config['influxdb']['url'], token=config['influxdb']['token'], enable_gzip=True)
         write_client = client.write_api(write_options=SYNCHRONOUS)
-        write_client.write(config['influxdb']['bucket'], map_to_influxdb(values_buffer))
+        write_client.write(config['influxdb']['bucket'], config['influxdb']['org'], map_to_influxdb(values_buffer))
         values_buffer = []
 
 
