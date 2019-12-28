@@ -92,25 +92,25 @@ def read_values():
     cpu_temp = get_cpu_temperature()
     raw_temp = bme280.get_temperature()
     comp_temp = raw_temp - ((cpu_temp - raw_temp) / comp_factor)
-    values["temperature"] = "{:.2f}".format(comp_temp)
-    values["pressure"] = "{:.2f}".format(bme280.get_pressure() * 100)
-    values["humidity"] = "{:.2f}".format(bme280.get_humidity())
+    values['temperature'] = "{:.2f}".format(comp_temp)
+    values['pressure'] = "{:.2f}".format(bme280.get_pressure())
+    values['humidity'] = "{:.2f}".format(bme280.get_humidity())
     data = gas.read_all()
-    values["oxidising"] = round(data.oxidising / 1000, 4)
-    values["reducing"] = round(data.reducing / 1000, 4)
-    values["nh3"] = round(data.nh3 / 1000, 4)
-    values["lux"] = ltr559.get_lux()
+    values['oxidising'] = "{:.4f}".format(data.oxidising / 1000)
+    values['reducing'] = "{:.4f}".format(data.reducing / 1000)
+    values['nh3'] = "{:.4f}".format(data.nh3 / 1000)
+    values['lux'] = str(ltr559.get_lux())
     try:
         pm_values = pms5003.read()
-        values["P2"] = str(pm_values.pm_ug_per_m3(2.5))
-        values["P1"] = str(pm_values.pm_ug_per_m3(10))
-        values["P1.0"] = str(pm_values.pm_ug_per_m3(1.0))
+        values['P2.5'] = str(pm_values.pm_ug_per_m3(2.5))
+        values['P10'] = str(pm_values.pm_ug_per_m3(10))
+        values['P1.0'] = str(pm_values.pm_ug_per_m3(1.0))
     except ReadTimeoutError:
         pms5003.reset()
         pm_values = pms5003.read()
-        values["P2"] = str(pm_values.pm_ug_per_m3(2.5))
-        values["P1"] = str(pm_values.pm_ug_per_m3(10))
-        values["P1.0"] = str(pm_values.pm_ug_per_m3(1.0))
+        values['P2.5'] = str(pm_values.pm_ug_per_m3(2.5))
+        values['P10'] = str(pm_values.pm_ug_per_m3(10))
+        values['P1.0'] = str(pm_values.pm_ug_per_m3(1.0))
 
     values['ts'] = time.time_ns()
     return values
@@ -159,9 +159,7 @@ def display_status(status=''):
 
 def send_to_luftdaten(values, id):
     logger.debug('Sending info to luftdaten')
-    temp_values = dict(i for i in values.items() if not i[0].startswith("P"))
-
-    pm_values = {'P1': values['P1'], 'P2': values['P2']}
+    pm_values = {'P1': values['P10'], 'P2': values['P2.5']}
     temp_values = {'temperature': values['temperature'], 'pressure': values['pressure'], 'humidity': values['humidity']}
 
     resp_1 = requests.post("https://api.luftdaten.info/v1/push-sensor-data/",
@@ -207,8 +205,6 @@ def map_to_influxdb(values):
                                 .format(value['P2'], value['P1'], value['P1.0'], value['ts']))
         influxDbMessages.append("gas,location=acacias oxidising={},reducing={},nh3={} {}"
                                 .format(value['oxidising'], value['reducing'], value['nh3'], value['ts']))
-
-        logger.debug(influxDbMessages)
 
     return influxDbMessages
 
@@ -256,7 +252,7 @@ while True:
         values = read_values()
         logger.debug(values)
         send_to_influxdb(values)
-        if time_since_update > 145:
+        if time_since_update > 120:
             resp = send_to_luftdaten(values, id)
             response = "ok" if resp else "failed"
             update_time = time.time()
