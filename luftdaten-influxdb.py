@@ -112,7 +112,7 @@ def read_values():
         values["P1"] = str(pm_values.pm_ug_per_m3(10))
         values["P1.0"] = str(pm_values.pm_ug_per_m3(1.0))
 
-    values['ts'] = round(time.time() * 100000000)
+    values['ts'] = time.time_ns()
     return values
 
 
