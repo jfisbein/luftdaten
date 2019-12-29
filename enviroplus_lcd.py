@@ -24,7 +24,6 @@ class EnviroplusLCD:
 
     # Display Last request date, last request status and Wi-Fi status on LCD
     def display_status(self, wifi_status, info_status):
-        # wifi_status = "connected" if check_wifi() else "disconnected"
         text_colour = (255, 255, 255)
         ok_back_colour = (0, 0, 0)  # Black
         error_back_colour = (85, 15, 15)  # Red
