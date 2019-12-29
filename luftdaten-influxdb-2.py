@@ -81,7 +81,8 @@ update_time = time.time()
 influxdb_cfg = config['influxdb']
 reader = enviroplus_reader.EnviroPlusReader()
 luftdaten_client = luftdaten_client.LuftdatenClient(id)
-influxdb_weather = influxdb_weather_client.InfluxDbWeather(influxdb_cfg['url'], influxdb_cfg['bucket'], influxdb_cfg['org'], influxdb_cfg['token'])
+influxdb_weather = influxdb_weather_client.InfluxDbWeather(influxdb_cfg['url'], influxdb_cfg['bucket'], influxdb_cfg['org'], influxdb_cfg['token'],
+                                                           logger)
 enviroplus_lcd = enviroplus_lcd.EnviroplusLCD(font)
 
 wifi_status = 'connected' if check_wifi() else 'disconnected'

@@ -1,15 +1,18 @@
+from logging import Logger
+
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 
 class InfluxDbWeather:
-    def __init__(self, url: str, bucket_id: str, org: str, token: str, buffer_size: int = 100) -> object:
+    def __init__(self, url: str, bucket_id: str, org: str, token: str, logger: Logger, buffer_size: int = 100) -> object:
         self.bucket_id = bucket_id
         self.org = org
         self.values_buffer = []
         self.client = InfluxDBClient(url=url, token=token, org=org, enable_gzip=True)
         self.write_client = self.client.write_api(write_options=SYNCHRONOUS)
         self.buffer_size = buffer_size
+        self.logger = logger
 
     @staticmethod
     def map_to_influxdb(values):
@@ -27,6 +30,6 @@ class InfluxDbWeather:
     def send_to_influxdb(self, values):
         self.values_buffer.append(values)
         if len(self.values_buffer) >= self.buffer_size:
-            # logger.info("Sending data to influxDB")
+            self.logger.info("Sending data to influxDB")
             self.write_client.write(self.bucket_id, self.org, self.map_to_influxdb(self.values_buffer))
             self.values_buffer = []
