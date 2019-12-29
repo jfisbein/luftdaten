@@ -4,7 +4,11 @@ from subprocess import PIPE, Popen
 from bme280 import BME280
 from enviroplus import gas
 from pms5003 import PMS5003, ReadTimeoutError
-from smbus2 import SMBus
+
+try:
+    from smbus2 import SMBus
+except ImportError:
+    from smbus import SMBus
 
 try:
     # Transitional fix for breaking change in LTR559
