@@ -5,7 +5,7 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 
 
 class InfluxDbWeather:
-    def __init__(self, url: str, bucket_id: str, org: str, token: str, logger: Logger, buffer_size: int = 100) -> object:
+    def __init__(self, url: str, bucket_id: str, org: str, token: str, logger: Logger, buffer_size: int = 100) -> None:
         self.bucket_id = bucket_id
         self.org = org
         self.values_buffer = []

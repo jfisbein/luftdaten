@@ -20,7 +20,7 @@ except ImportError:
 
 
 class EnviroPlusReader:
-    def __init__(self, comp_factor: float = 1.2) -> object:
+    def __init__(self, comp_factor: float = 1.2) -> None:
         self.bus = SMBus(1)
 
         # Create BME280 (temp, humidity and pressure sensor) instance

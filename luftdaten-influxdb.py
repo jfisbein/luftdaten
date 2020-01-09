@@ -32,33 +32,33 @@ Press Ctrl+C to exit!
 
 # Create logger
 def get_logger(path):
-  rotating_handler = TimedRotatingFileHandler(path, when='d', backupCount=7)
-  formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
-  rotating_handler.setFormatter(formatter)
-  memory_handler = MemoryHandler(capacity=512 * 1024, target=rotating_handler)
-  console_handler = logging.StreamHandler()
-  console_handler.setFormatter(formatter)
-  logger = logging.getLogger("luftdaten")
-  logger.setLevel(logging.DEBUG)
-  logger.addHandler(memory_handler)
-  logger.addHandler(console_handler)
-  return logger
+    rotating_handler = TimedRotatingFileHandler(path, when='d', backupCount=7)
+    formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s')
+    rotating_handler.setFormatter(formatter)
+    memory_handler = MemoryHandler(capacity=512 * 1024, target=rotating_handler)
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger = logging.getLogger("luftdaten")
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(memory_handler)
+    logger.addHandler(console_handler)
+    return logger
 
 
 # Get Raspberry Pi serial number to use as ID
 def get_serial_number():
-  with open('/proc/cpuinfo', 'r') as f:
-    for line in f:
-      if line[0:6] == 'Serial':
-        return line.split(":")[1].strip()
+    with open('/proc/cpuinfo', 'r') as f:
+        for line in f:
+            if line[0:6] == 'Serial':
+                return line.split(":")[1].strip()
 
 
 # Check for Wi-Fi connection
 def check_wifi():
-  if check_output(['hostname', '-I']):
-    return True
-  else:
-    return False
+    if check_output(['hostname', '-I']):
+        return True
+    else:
+        return False
 
 
 # Raspberry Pi ID to send to Luftdaten
@@ -74,7 +74,7 @@ font = ImageFont.truetype("fonts/Asap/Asap-Bold.ttf", font_size)
 # Display Raspberry Pi serial and Wi-Fi status
 logger.info("Raspberry Pi serial: {}".format(get_serial_number()))
 logger.info(
-  "Wi-Fi: {}\n".format('connected' if check_wifi() else 'disconnected'))
+    "Wi-Fi: {}\n".format('connected' if check_wifi() else 'disconnected'))
 
 time_since_update = 0
 update_time = time.time()
@@ -92,20 +92,20 @@ wifi_status = 'connected' if check_wifi() else 'disconnected'
 enviroplus_lcd.display_status(wifi_status, 'waiting')
 # Main loop to read data, display, and send to Luftdaten
 while True:
-  try:
-    time_since_update = time.time() - update_time
-    values = reader.read_values()
-    logger.debug(values)
-    influxdb_weather.send_to_influxdb(values)
-    if time_since_update > 120:
-      wifi_status = 'connected' if check_wifi() else 'disconnected'
-      resp = luftdaten_client.send_to_luftdaten(values)
-      response = 'ok' if resp else 'failed'
-      update_time = time.time()
-      logger.info("Response: {}".format(response))
-      enviroplus_lcd.display_status(wifi_status, response)
-  except KeyboardInterrupt:
-    enviroplus_lcd.turnoff()
-    raise
-  except Exception as e:
-    logger.exception(e)
+    try:
+        time_since_update = time.time() - update_time
+        values = reader.read_values()
+        logger.debug(values)
+        influxdb_weather.send_to_influxdb(values)
+        if time_since_update > 120:
+            wifi_status = 'connected' if check_wifi() else 'disconnected'
+            resp = luftdaten_client.send_to_luftdaten(values)
+            response = 'ok' if resp else 'failed'
+            update_time = time.time()
+            logger.info("Response: {}".format(response))
+            enviroplus_lcd.display_status(wifi_status, response)
+    except KeyboardInterrupt:
+        enviroplus_lcd.turnoff()
+        raise
+    except Exception as e:
+        logger.exception(e)

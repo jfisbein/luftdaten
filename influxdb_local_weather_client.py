@@ -4,7 +4,8 @@ from influxdb import InfluxDBClient
 
 
 class InfluxDbWeather:
-    def __init__(self, host: str, port: int, database: str, username: str, password: str, logger: Logger, buffer_size: int = 100) -> object:
+    def __init__(self, host: str, port: int, database: str, username: str, password: str, logger: Logger,
+                 buffer_size: int = 100) -> None:
         self.values_buffer = []
         self.client = InfluxDBClient(host=host, port=port, database=database, username=username, password=password)
         self.buffer_size = buffer_size
