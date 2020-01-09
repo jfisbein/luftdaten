@@ -2,10 +2,10 @@ import requests
 
 
 class LuftdatenClient:
-    def __init__(self, sensor_id: str) -> object:
+    def __init__(self, sensor_id: str) -> None:
         self.sensor_id = sensor_id
 
-    def send_to_luftdaten(self, values):
+    def send_to_luftdaten(self, values) -> bool:
         resp_1 = requests.post("https://api.luftdaten.info/v1/push-sensor-data/",
                                json={
                                    "software_version": "enviro-plus 0.0.1",
