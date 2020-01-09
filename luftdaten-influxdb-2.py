@@ -10,7 +10,7 @@ from PIL import ImageFont
 
 import enviroplus_lcd
 import enviroplus_reader
-import influxdb_weather_client
+import influxdb_local_weather_client
 import luftdaten_client
 
 config = yaml.safe_load(open("config.yml"))
@@ -81,8 +81,9 @@ update_time = time.time()
 influxdb_cfg = config['influxdb']
 reader = enviroplus_reader.EnviroPlusReader()
 luftdaten_client = luftdaten_client.LuftdatenClient(id)
-influxdb_weather = influxdb_weather_client.InfluxDbWeather(influxdb_cfg['url'], influxdb_cfg['bucket'], influxdb_cfg['org'], influxdb_cfg['token'],
-                                                           logger)
+
+influxdb_weather = influxdb_local_weather_client.InfluxDbWeather(influxdb_cfg['host'], influxdb_cfg['port'], influxdb_cfg['database'],
+                                                                 influxdb_cfg['username'], influxdb_cfg['password'], logger)
 enviroplus_lcd = enviroplus_lcd.EnviroplusLCD(font)
 
 wifi_status = 'connected' if check_wifi() else 'disconnected'

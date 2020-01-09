@@ -1,0 +1,13 @@
+ST7735
+numpy
+spidev
+influxdb-client
+influxdb
+bme280
+pms5003
+requests
+enviroplus
+smbus2
+Pillow
+PyYAML
+RPi.GPIO
