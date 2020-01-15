@@ -12,6 +12,7 @@ import enviroplus_lcd
 import enviroplus_reader
 import influxdb_local_weather_client
 import luftdaten_client
+import opensensemap_client
 
 config = yaml.safe_load(open("config.yml"))
 
@@ -79,14 +80,25 @@ logger.info(
 time_since_update = 0
 update_time = time.time()
 
-influxdb_cfg = config['influxdb']
+# Enviroplus measures reader
 reader = enviroplus_reader.EnviroPlusReader()
+
+# Luftdaten Client
 luftdaten_client = luftdaten_client.LuftdatenClient(id)
 
+# InfluxDB client
+influxdb_cfg = config['influxdb']
 influxdb_weather = influxdb_local_weather_client.InfluxDbWeather(
     influxdb_cfg['host'], influxdb_cfg['port'], influxdb_cfg['database'],
     influxdb_cfg['username'], influxdb_cfg['password'], logger)
 enviroplus_lcd = enviroplus_lcd.EnviroplusLCD(font)
+
+# OpenSenseMap client
+opensensemap_cfg = config['opensensemap']
+opensensemap_client = opensensemap_client.OpenSenseMapClient(config['sensebox_id'], config['temperature_sensor_id'],
+                                                             config['humidity_sensor_id'], config['pressure_sensor_id'],
+                                                             config['pm_1_0_sensor_id'], config['pm_2_5_sensor_id'],
+                                                             config['pm_10_sensor_id'], logger)
 
 wifi_status = 'connected' if check_wifi() else 'disconnected'
 enviroplus_lcd.display_status(wifi_status, 'waiting')
@@ -94,11 +106,18 @@ enviroplus_lcd.display_status(wifi_status, 'waiting')
 while True:
     try:
         time_since_update = time.time() - update_time
+        # Read measures
         values = reader.read_values()
         logger.debug(values)
+
+        # Sen measures to influxDb
         influxdb_weather.send_to_influxdb(values)
+
+        # Send measures to OpenSenseMap
+        opensensemap_client.send_to_opensensemap(values)
         if time_since_update > 120:
             wifi_status = 'connected' if check_wifi() else 'disconnected'
+            # Send to Luftdaten
             resp = luftdaten_client.send_to_luftdaten(values)
             response = 'ok' if resp else 'failed'
             update_time = time.time()
