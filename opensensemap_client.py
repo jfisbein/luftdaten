@@ -48,4 +48,4 @@ class OpenSenseMapClient:
                                  })
 
             self.values_buffer = []
-            self.logger.info("Sent data to OpenSenseMap, ok: {}".format(resp))
+            self.logger.info("Sent data to OpenSenseMap, ok: {}-{}".format(resp.status_code, resp.text))
