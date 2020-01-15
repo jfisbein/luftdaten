@@ -95,10 +95,13 @@ enviroplus_lcd = enviroplus_lcd.EnviroplusLCD(font)
 
 # OpenSenseMap client
 opensensemap_cfg = config['opensensemap']
-opensensemap_client = opensensemap_client.OpenSenseMapClient(config['sensebox_id'], config['temperature_sensor_id'],
-                                                             config['humidity_sensor_id'], config['pressure_sensor_id'],
-                                                             config['pm_1_0_sensor_id'], config['pm_2_5_sensor_id'],
-                                                             config['pm_10_sensor_id'], logger)
+opensensemap_client = opensensemap_client.OpenSenseMapClient(opensensemap_cfg['sensebox_id'],
+                                                             opensensemap_cfg['temperature_sensor_id'],
+                                                             opensensemap_cfg['humidity_sensor_id'],
+                                                             opensensemap_cfg['pressure_sensor_id'],
+                                                             opensensemap_cfg['pm_1_0_sensor_id'],
+                                                             opensensemap_cfg['pm_2_5_sensor_id'],
+                                                             opensensemap_cfg['pm_10_sensor_id'], logger)
 
 wifi_status = 'connected' if check_wifi() else 'disconnected'
 enviroplus_lcd.display_status(wifi_status, 'waiting')
