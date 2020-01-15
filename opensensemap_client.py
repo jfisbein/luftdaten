@@ -19,11 +19,18 @@ class OpenSenseMapClient:
         self.sensebox_id = sensebox_id
         self.values_buffer = []
 
+    @staticmethod
+    def ts_to_rfc3339(ts_in_nanos):
+        ts_in_seconds = ts_in_nanos / (1000 * 1000 * 1000)
+        ts = datetime.utcfromtimestamp(ts_in_seconds).astimezone(timezone.utc).isoformat()
+        ts = ts.replace('+00:00', 'Z')
+    
+        return ts
+
     def map_values(self, values):
         opensensemap_messages = []
         for value in values:
-            ts = value["ts"] / (1000 * 1000 * 1000)  # to seconds
-            ts = datetime.utcfromtimestamp(ts).astimezone(timezone.utc).isoformat()
+            ts = self.ts_to_rfc3339(value["ts"])
             opensensemap_messages.append(
                 {"sensor": self.temperature_sensor_id, "value": value['temperature'], "createdAt": ts})
             opensensemap_messages.append(
