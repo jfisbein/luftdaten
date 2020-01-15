@@ -126,6 +126,8 @@ while True:
             update_time = time.time()
             logger.info("Response: {}".format(response))
             enviroplus_lcd.display_status(wifi_status, response)
+            time.sleep(2)
+
     except KeyboardInterrupt:
         enviroplus_lcd.turnoff()
         raise
