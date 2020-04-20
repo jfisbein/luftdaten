@@ -6,8 +6,8 @@ import requests
 
 class OpenSenseMapClient:
     def __init__(self, sensebox_id: str, temperature_sensor_id: str, humidity_sensor_id: str,
-                 pressure_sensor_id: str, pm_1_0_sensor_id: str, pm_2_5_sensor_id: str, pm_10_sensor_id: str,
-                 logger: Logger, buffer_size: int = 100) -> None:
+        pressure_sensor_id: str, pm_1_0_sensor_id: str, pm_2_5_sensor_id: str, pm_10_sensor_id: str,
+        logger: Logger, buffer_size: int = 100) -> None:
         self.logger = logger
         self.buffer_size = buffer_size
         self.pm_10_sensor_id = pm_10_sensor_id
@@ -24,19 +24,16 @@ class OpenSenseMapClient:
         ts_in_seconds = ts_in_nanos / (1000 * 1000 * 1000)
         ts = datetime.utcfromtimestamp(ts_in_seconds).astimezone(timezone.utc).isoformat()
         ts = ts.replace('+00:00', 'Z')
-    
+
         return ts
 
     def map_values(self, values):
         opensensemap_messages = []
         for value in values:
             ts = self.ts_to_rfc3339(value["ts"])
-            opensensemap_messages.append(
-                {"sensor": self.temperature_sensor_id, "value": value['temperature'], "createdAt": ts})
-            opensensemap_messages.append(
-                {"sensor": self.humidity_sensor_id, "value": value['humidity'], "createdAt": ts})
-            opensensemap_messages.append(
-                {"sensor": self.pressure_sensor_id, "value": value['pressure'], "createdAt": ts})
+            opensensemap_messages.append({"sensor": self.temperature_sensor_id, "value": value['temperature'], "createdAt": ts})
+            opensensemap_messages.append({"sensor": self.humidity_sensor_id, "value": value['humidity'], "createdAt": ts})
+            opensensemap_messages.append({"sensor": self.pressure_sensor_id, "value": value['pressure'], "createdAt": ts})
             opensensemap_messages.append({"sensor": self.pm_1_0_sensor_id, "value": value['P1.0'], "createdAt": ts})
             opensensemap_messages.append({"sensor": self.pm_2_5_sensor_id, "value": value['P2.5'], "createdAt": ts})
             opensensemap_messages.append({"sensor": self.pm_10_sensor_id, "value": value['P10'], "createdAt": ts})
